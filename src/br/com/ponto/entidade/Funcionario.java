@@ -27,7 +27,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Table(schema = "sigi", name = "funcionario")
 @XmlRootElement
 @NamedQueries({
-    @NamedQuery(name = "Funcionario.listaTodos", query = "SELECT f FROM Funcionario f where f.funcStatus = true")})
+    @NamedQuery(name = "Funcionario.listaTodos", query = "SELECT f FROM Funcionario f where f.funcStatus = true order by f.funcNome ASC")})
 public class Funcionario implements Serializable {
 
     private static final long serialVersionUID = 1L;
