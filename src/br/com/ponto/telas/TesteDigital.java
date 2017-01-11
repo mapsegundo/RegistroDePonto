@@ -13,7 +13,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -51,6 +53,21 @@ public class TesteDigital extends javax.swing.JFrame {
     private void limparCampos() {
         txtDigital1.setText("");
         txtDigital2.setText("");
+    }
+
+    public void atualizarCbCadastrados() {
+        try {
+            this.cbFuncionario.removeAllItems();
+            FuncionarioDAO dao = new FuncionarioDAO();
+            List<Funcionario> listaClientes = new ArrayList<Funcionario>();
+            listaClientes = dao.listarTodosFuncionariosComBiometria();
+
+            for (Funcionario funcionario : listaClientes) {
+                this.cbCadastrados.addItem(funcionario);
+            }
+        } catch (Exception e) {
+
+        }
     }
 
     private static Runnable lerDigital2 = new Runnable() {
@@ -104,6 +121,9 @@ public class TesteDigital extends javax.swing.JFrame {
         btnLimparDigitais = new javax.swing.JButton();
         btnMostrarDigitais = new javax.swing.JButton();
         btnVerificar = new javax.swing.JButton();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        cbCadastrados = new javax.swing.JComboBox<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Biometria");
@@ -180,6 +200,27 @@ public class TesteDigital extends javax.swing.JFrame {
             }
         });
 
+        jLabel2.setFont(new java.awt.Font("Tahoma", 1, 16)); // NOI18N
+        jLabel2.setText("GERAL");
+
+        jLabel3.setFont(new java.awt.Font("Tahoma", 1, 16)); // NOI18N
+        jLabel3.setText("CADASTRADOS");
+
+        cbCadastrados.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                cbCadastradosItemStateChanged(evt);
+            }
+        });
+        cbCadastrados.addAncestorListener(new javax.swing.event.AncestorListener() {
+            public void ancestorAdded(javax.swing.event.AncestorEvent evt) {
+                cbCadastradosAncestorAdded(evt);
+            }
+            public void ancestorRemoved(javax.swing.event.AncestorEvent evt) {
+            }
+            public void ancestorMoved(javax.swing.event.AncestorEvent evt) {
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -187,29 +228,36 @@ public class TesteDigital extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(cbFuncionario, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(btnCadastrar))
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(btnDigital1)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(txtDigital1, javax.swing.GroupLayout.PREFERRED_SIZE, 147, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(txtDigital1))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(btnDigital2)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(txtDigital2)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(btnComparar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(btnVerificar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(btnLimparDigitais, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 103, Short.MAX_VALUE)
+                        .addComponent(btnMostrarDigitais, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(btnCadastrar))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel3)
+                            .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 106, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnMostrarDigitais, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(cbFuncionario, 0, 229, Short.MAX_VALUE)
+                            .addComponent(cbCadastrados, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -232,7 +280,13 @@ public class TesteDigital extends javax.swing.JFrame {
                     .addComponent(btnLimparDigitais)
                     .addComponent(btnMostrarDigitais))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(cbFuncionario, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cbFuncionario, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel2))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3)
+                    .addComponent(cbCadastrados, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnCadastrar)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -302,8 +356,12 @@ public class TesteDigital extends javax.swing.JFrame {
     }//GEN-LAST:event_btnLimparDigitaisActionPerformed
 
     private void btnMostrarDigitaisActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMostrarDigitaisActionPerformed
-        txtDigital1.setText(digital1.toString());
-        txtDigital2.setText(digital2.toString());
+        if (digital1 != null) {
+            txtDigital1.setText(digital1.toString());
+        }
+        if (digital2 != null) {
+            txtDigital2.setText(digital2.toString());
+        }
     }//GEN-LAST:event_btnMostrarDigitaisActionPerformed
 
     private void btnCadastrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCadastrarActionPerformed
@@ -317,6 +375,7 @@ public class TesteDigital extends javax.swing.JFrame {
             dao.alterar(funcionario);
 
             JOptionPane.showMessageDialog(null, "Biometrias cadastradas com sucesso");
+            atualizarCbCadastrados();
             limparCampos();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao cadastrar as biometrias: " + e);
@@ -362,7 +421,7 @@ public class TesteDigital extends javax.swing.JFrame {
             cbFuncionario.removeAllItems();
             FuncionarioDAO dao = new FuncionarioDAO();
             List<Funcionario> listaClientes = dao.listarTodosFuncionarios();
-            
+
             cbFuncionario.addItem(" ");
             for (Funcionario funcionario : listaClientes) {
                 cbFuncionario.addItem(funcionario);
@@ -371,6 +430,28 @@ public class TesteDigital extends javax.swing.JFrame {
 
         }
     }//GEN-LAST:event_cbFuncionarioAncestorAdded
+
+    private void cbCadastradosAncestorAdded(javax.swing.event.AncestorEvent evt) {//GEN-FIRST:event_cbCadastradosAncestorAdded
+        try {
+            FuncionarioDAO dao = new FuncionarioDAO();
+            List<Funcionario> listaClientes = dao.listarTodosFuncionariosComBiometria();
+
+            for (Funcionario funcionario : listaClientes) {
+                cbCadastrados.addItem(funcionario);
+            }
+        } catch (Exception e) {
+
+        }
+    }//GEN-LAST:event_cbCadastradosAncestorAdded
+
+    private void cbCadastradosItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cbCadastradosItemStateChanged
+        Funcionario funcionario = (Funcionario) cbCadastrados.getSelectedItem();
+        digital1 = funcionario.getFuncDigital1();
+        digital2 = funcionario.getFuncDigital2();
+        txtDigital1.setText(funcionario.getFuncDigital1().toString());
+        txtDigital2.setText(funcionario.getFuncDigital2().toString());
+        System.out.println(funcionario);
+    }//GEN-LAST:event_cbCadastradosItemStateChanged
 
     /**
      * @param args the command line arguments
@@ -415,8 +496,11 @@ public class TesteDigital extends javax.swing.JFrame {
     private javax.swing.JButton btnLimparDigitais;
     private javax.swing.JButton btnMostrarDigitais;
     private javax.swing.JButton btnVerificar;
+    private javax.swing.JComboBox<Object> cbCadastrados;
     private javax.swing.JComboBox<Object> cbFuncionario;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JTextField txtDigital1;
     private javax.swing.JTextField txtDigital2;
     // End of variables declaration//GEN-END:variables
