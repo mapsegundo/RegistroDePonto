@@ -34,7 +34,7 @@ public class FuncionarioDAO {
     public void alterar(Funcionario funcionario){
         try {
             //Criar comando SQL
-            String cmdSql = "UPDATE sigi.funcionario set func_digital1=?, func_digital2=? where idCliente =?";
+            String cmdSql = "UPDATE sigi.funcionario set func_digital1=?, func_digital2=? where func_pk_id =?";
 
             //Estruturar o comando
             PreparedStatement stmt = conexao.prepareStatement(cmdSql);
@@ -73,6 +73,35 @@ public class FuncionarioDAO {
                 Funcionario funcionario = new Funcionario();
                 funcionario.setFuncPkId(rs.getInt("func_pk_id"));
                 funcionario.setFuncNome(rs.getString("func_nome"));
+                listaFuncionarios.add(funcionario);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Erro ao montar a lista: "+e);
+        }
+        return listaFuncionarios;
+    }
+    
+    public List<Funcionario> listarTodosFuncionariosComBiometria() {
+        List<Funcionario> listaFuncionarios = null;
+        try {
+            //Criar vetor que vai armazenar os usuarios
+            listaFuncionarios = new ArrayList<>();
+
+            //Criar comando SQL
+            String cmdSql = "SELECT * from sigi.funcionario where func_status = true and (func_digital1 not like '' or func_digital2 not like '') Order By func_nome";
+
+            //Executar o comando
+            PreparedStatement stmt = conexao.prepareStatement(cmdSql);
+            ResultSet rs = stmt.executeQuery();
+            
+            //Percorrer os resultados no RS e colocados dentro da lista
+            while(rs.next()){
+                Funcionario funcionario = new Funcionario();
+                funcionario.setFuncPkId(rs.getInt("func_pk_id"));
+                funcionario.setFuncNome(rs.getString("func_nome"));
+                funcionario.setFuncDigital1(rs.getBytes("func_digital1"));
+                funcionario.setFuncDigital2(rs.getBytes("func_digital2"));
                 listaFuncionarios.add(funcionario);
             }
 
