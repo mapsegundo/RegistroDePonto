@@ -10,7 +10,9 @@ import br.com.ponto.entidade.Funcionario;
 import br.com.ponto.sdk.CisBiox;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
@@ -146,7 +148,6 @@ public class TesteDigital extends javax.swing.JFrame {
     };
 
     public void verificarBiometria() throws InterruptedException {
-        btnCancelarLeitura.setEnabled(true);
         nomeFuncionario = null;
         Thread etapaCaptura = new Thread(pegaBatida);
         Thread etapaCompara = new Thread(comparaBatida);
@@ -231,6 +232,20 @@ public class TesteDigital extends javax.swing.JFrame {
         btnCancelarLeitura.setEnabled(false);
     }
 
+    public void popularComboBoxFuncionarios() {
+        try {
+            cbFuncionario.removeAllItems();
+            FuncionarioDAO dao = new FuncionarioDAO();
+            List<Funcionario> listaClientes = dao.listarTodosFuncionarios();
+
+            for (Funcionario funcionario : listaClientes) {
+                cbFuncionario.addItem(funcionario);
+            }
+        } catch (Exception e) {
+
+        }
+    }
+
     /**
      * Creates new form TesteDigital
      */
@@ -265,6 +280,10 @@ public class TesteDigital extends javax.swing.JFrame {
         btnVerificar = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         tabelaCadastrados = new javax.swing.JTable();
+        jPanel3 = new javax.swing.JPanel();
+        jLabel6 = new javax.swing.JLabel();
+        txtFiltro = new javax.swing.JTextField();
+        btnFiltro = new javax.swing.JButton();
 
         dialogConfirmacao.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         dialogConfirmacao.setTitle("Confirmação");
@@ -322,15 +341,16 @@ public class TesteDigital extends javax.swing.JFrame {
             }
         });
 
-        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 16)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
         jLabel1.setText("Sistema Biometrico");
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Área de Cadastro"));
         jPanel1.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
 
-        jLabel2.setFont(new java.awt.Font("Tahoma", 1, 16)); // NOI18N
+        jLabel2.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         jLabel2.setText("Lista de Funcionários");
 
+        cbFuncionario.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         cbFuncionario.addAncestorListener(new javax.swing.event.AncestorListener() {
             public void ancestorMoved(javax.swing.event.AncestorEvent evt) {
             }
@@ -341,6 +361,7 @@ public class TesteDigital extends javax.swing.JFrame {
             }
         });
 
+        btnDigital2.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         btnDigital2.setText("Cadastrar Digital 2");
         btnDigital2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -348,6 +369,7 @@ public class TesteDigital extends javax.swing.JFrame {
             }
         });
 
+        btnDigital1.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         btnDigital1.setText("Cadastrar Digital 1");
         btnDigital1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -355,6 +377,7 @@ public class TesteDigital extends javax.swing.JFrame {
             }
         });
 
+        btnCancelarLeitura.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         btnCancelarLeitura.setText("Cancelar Leitor");
         btnCancelarLeitura.setEnabled(false);
         btnCancelarLeitura.addActionListener(new java.awt.event.ActionListener() {
@@ -363,6 +386,7 @@ public class TesteDigital extends javax.swing.JFrame {
             }
         });
 
+        btnCadastrar.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         btnCadastrar.setText("Cadastrar");
         btnCadastrar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -384,9 +408,9 @@ public class TesteDigital extends javax.swing.JFrame {
                         .addGap(0, 0, Short.MAX_VALUE)
                         .addComponent(btnCadastrar))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 206, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(cbFuncionario, javax.swing.GroupLayout.PREFERRED_SIZE, 528, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(cbFuncionario, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -409,8 +433,10 @@ public class TesteDigital extends javax.swing.JFrame {
 
         jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Área de Verificação"));
 
+        jLabel3.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         jLabel3.setText("Clique no botão verificar e insira sua digital");
 
+        btnVerificar.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         btnVerificar.setText("Verificar Biometria");
         btnVerificar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -457,6 +483,45 @@ public class TesteDigital extends javax.swing.JFrame {
         });
         jScrollPane1.setViewportView(tabelaCadastrados);
 
+        jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("Área de Filtragem"));
+
+        jLabel6.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        jLabel6.setText("Filtrar por nome:");
+
+        txtFiltro.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+
+        btnFiltro.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        btnFiltro.setText("Filtrar");
+        btnFiltro.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnFiltroActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtFiltro, javax.swing.GroupLayout.PREFERRED_SIZE, 467, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnFiltro, javax.swing.GroupLayout.DEFAULT_SIZE, 119, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel6)
+                    .addComponent(txtFiltro, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnFiltro))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -464,6 +529,9 @@ public class TesteDigital extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addContainerGap())
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGap(178, 178, 178))
@@ -480,11 +548,13 @@ public class TesteDigital extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 222, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 247, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 16, Short.MAX_VALUE)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 269, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 216, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -534,6 +604,8 @@ public class TesteDigital extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Biometrias cadastradas com sucesso");
             limparDigitais();
             cancelarLeitor();
+            cbFuncionario.removeAllItems();
+            popularComboBoxFuncionarios();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao cadastrar as biometrias: " + e);
         }
@@ -581,17 +653,7 @@ public class TesteDigital extends javax.swing.JFrame {
     }//GEN-LAST:event_btnVerificarActionPerformed
 
     private void cbFuncionarioAncestorAdded(javax.swing.event.AncestorEvent evt) {//GEN-FIRST:event_cbFuncionarioAncestorAdded
-        try {
-            cbFuncionario.removeAllItems();
-            FuncionarioDAO dao = new FuncionarioDAO();
-            List<Funcionario> listaClientes = dao.listarTodosFuncionarios();
-
-            for (Funcionario funcionario : listaClientes) {
-                cbFuncionario.addItem(funcionario);
-            }
-        } catch (Exception e) {
-
-        }
+        popularComboBoxFuncionarios();
     }//GEN-LAST:event_cbFuncionarioAncestorAdded
 
     private void btnCancelarLeituraActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelarLeituraActionPerformed
@@ -615,6 +677,28 @@ public class TesteDigital extends javax.swing.JFrame {
 
         }
     }//GEN-LAST:event_tabelaCadastradosMouseClicked
+
+    private void btnFiltroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFiltroActionPerformed
+        List<Funcionario> listaFuncionarios = new ArrayList<Funcionario>();
+        try {
+            FuncionarioDAO dao = new FuncionarioDAO();
+            String nome = "%"+txtFiltro.getText().toUpperCase()+"%";
+            listaFuncionarios = dao.consultarPorFuncionario(nome);
+            DefaultTableModel modelo = (DefaultTableModel) tabelaCadastrados.getModel();
+            modelo.setNumRows(0);
+            for (Funcionario funcionario : listaFuncionarios) {
+                modelo.addRow(new Object[]{
+                    funcionario.getFuncPkId(),
+                    funcionario,
+                    funcionario.getFuncDigital1(),
+                    funcionario.getFuncDigital2()
+                });
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Funcionário não encontrado");
+            listarBiometriasCadastradas();
+        }
+    }//GEN-LAST:event_btnFiltroActionPerformed
 
     /**
      * @param args the command line arguments
@@ -656,6 +740,7 @@ public class TesteDigital extends javax.swing.JFrame {
     private javax.swing.JButton btnCancelarLeitura;
     private javax.swing.JButton btnDigital1;
     private javax.swing.JButton btnDigital2;
+    private javax.swing.JButton btnFiltro;
     private javax.swing.JButton btnVerificar;
     private javax.swing.JComboBox<Object> cbFuncionario;
     private javax.swing.JDialog dialogConfirmacao;
@@ -664,11 +749,14 @@ public class TesteDigital extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable tabelaCadastrados;
     private javax.swing.JTextField txtConfirmacao;
+    private javax.swing.JTextField txtFiltro;
     private javax.swing.JTextField txtHora;
     // End of variables declaration//GEN-END:variables
 

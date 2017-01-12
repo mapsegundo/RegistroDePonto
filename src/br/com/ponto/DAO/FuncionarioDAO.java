@@ -62,7 +62,7 @@ public class FuncionarioDAO {
             listaFuncionarios = new ArrayList<>();
 
             //Criar comando SQL
-            String cmdSql = "SELECT * from sigi.funcionario where func_status = true Order By func_nome";
+            String cmdSql = "SELECT * from sigi.funcionario where func_status = true and (func_digital1 is null or func_digital2 is null) Order By func_nome";
 
             //Executar o comando
             PreparedStatement stmt = conexao.prepareStatement(cmdSql);
@@ -93,6 +93,36 @@ public class FuncionarioDAO {
 
             //Executar o comando
             PreparedStatement stmt = conexao.prepareStatement(cmdSql);
+            ResultSet rs = stmt.executeQuery();
+            
+            //Percorrer os resultados no RS e colocados dentro da lista
+            while(rs.next()){
+                Funcionario funcionario = new Funcionario();
+                funcionario.setFuncPkId(rs.getInt("func_pk_id"));
+                funcionario.setFuncNome(rs.getString("func_nome"));
+                funcionario.setFuncDigital1(rs.getBytes("func_digital1"));
+                funcionario.setFuncDigital2(rs.getBytes("func_digital2"));
+                listaFuncionarios.add(funcionario);
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Erro ao montar a lista: "+e);
+        }
+        return listaFuncionarios;
+    }
+    
+    public List<Funcionario> consultarPorFuncionario(String nome) {
+        List<Funcionario> listaFuncionarios = null;
+        try {
+            //Criar vetor que vai armazenar os usuarios
+            listaFuncionarios = new ArrayList<>();
+
+            //Criar comando SQL
+            String cmdSql = "SELECT * from sigi.funcionario where func_status = true and (func_digital1 not like '' or func_digital2 not like '') and func_nome like ? Order By func_nome";
+
+            //Executar o comando
+            PreparedStatement stmt = conexao.prepareStatement(cmdSql);
+            stmt.setString(1, nome);
             ResultSet rs = stmt.executeQuery();
             
             //Percorrer os resultados no RS e colocados dentro da lista
