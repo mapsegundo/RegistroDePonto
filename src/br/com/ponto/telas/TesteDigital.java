@@ -8,13 +8,15 @@ package br.com.ponto.telas;
 import br.com.ponto.DAO.FuncionarioDAO;
 import br.com.ponto.entidade.Funcionario;
 import br.com.ponto.sdk.CisBiox;
-import java.sql.SQLException;
-import java.util.ArrayList;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
+import javax.swing.Timer;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -25,6 +27,9 @@ public class TesteDigital extends javax.swing.JFrame {
 
     private static byte[] digital1;
     private static byte[] digital2;
+    private static byte[] testeDigital;
+    private static String nomeFuncionario;
+    private javax.swing.Timer timer;
 
     private static Runnable lerDigital1 = new Runnable() {
         @Override
@@ -46,29 +51,9 @@ public class TesteDigital extends javax.swing.JFrame {
             }
 
             JOptionPane.showMessageDialog(null, CisBiox.mensagem(iRetorno));
-
+            //setTxtDigital2(digital2);
         }
     };
-
-    private void limparCampos() {
-        txtDigital1.setText("");
-        txtDigital2.setText("");
-    }
-
-    public void atualizarCbCadastrados() {
-        try {
-            this.cbFuncionario.removeAllItems();
-            FuncionarioDAO dao = new FuncionarioDAO();
-            List<Funcionario> listaClientes = new ArrayList<Funcionario>();
-            listaClientes = dao.listarTodosFuncionariosComBiometria();
-
-            for (Funcionario funcionario : listaClientes) {
-                this.cbCadastrados.addItem(funcionario);
-            }
-        } catch (Exception e) {
-
-        }
-    }
 
     private static Runnable lerDigital2 = new Runnable() {
         @Override
@@ -94,6 +79,158 @@ public class TesteDigital extends javax.swing.JFrame {
         }
     };
 
+    private static Runnable pegaBatida = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                CisBiox biox = new CisBiox();
+
+                biox.iniciar();
+
+                testeDigital = biox.capturarDigital();
+
+                if (biox.getResultado() != 1) {
+                    biox.finalizar();
+                    return;
+                }
+
+                int iRetorno = biox.finalizar();
+
+                if (iRetorno != 1) {
+                    JOptionPane.showMessageDialog(null, "Erro: " + CisBiox.mensagem(iRetorno));
+                    return;
+                }
+
+            } catch (Exception e) {
+
+            }
+        }
+    };
+
+    private static Runnable comparaBatida = new Runnable() {
+        @Override
+        public void run() {
+            try {
+
+                CisBiox biox = new CisBiox();
+
+                biox.iniciar();
+
+                FuncionarioDAO dao = new FuncionarioDAO();
+                List<Funcionario> listaCadastrados = dao.listarTodosFuncionariosComBiometria();
+
+                Funcionario funcionarioEncontrado = null;
+                for (Funcionario funcionario : listaCadastrados) {
+                    if (biox.compararDigital(funcionario.getFuncDigital1(), testeDigital) == 1) {
+                        funcionarioEncontrado = funcionario;
+                        break;
+                    }
+                    if (biox.compararDigital(funcionario.getFuncDigital2(), testeDigital) == 1) {
+                        funcionarioEncontrado = funcionario;
+                        break;
+                    }
+                }
+                biox.finalizar();
+                biox.cancelarLeitura();
+
+                if (funcionarioEncontrado != null) {
+                    //JOptionPane.showMessageDialog(null, "Bem vindo " + funcionarioEncontrado.getFuncNome());
+                    nomeFuncionario = funcionarioEncontrado.getFuncNome();
+                } else {
+                    JOptionPane.showMessageDialog(null, "Digital não encontrada");
+                }
+            } catch (Exception e) {
+
+            }
+        }
+    };
+
+    public void verificarBiometria() throws InterruptedException {
+        btnCancelarLeitura.setEnabled(true);
+        nomeFuncionario = null;
+        Thread etapaCaptura = new Thread(pegaBatida);
+        Thread etapaCompara = new Thread(comparaBatida);
+
+        etapaCaptura.start();
+        etapaCaptura.join();
+        etapaCompara.start();
+        etapaCompara.join();
+        telaConfirmacao(nomeFuncionario);
+    }
+
+    public void telaConfirmacao(String funcionario) {
+        txtConfirmacao.setText(funcionario);
+        dialogConfirmacao.setSize(550, 200);
+        dialogConfirmacao.setLocationRelativeTo(this);
+        dialogConfirmacao.show();
+        Date minhaHora = new Date();
+        SimpleDateFormat formataHora = new SimpleDateFormat("HH:mm:ss");
+        txtHora.setText(formataHora.format(minhaHora));
+
+        timer = new Timer(1 * 2000, new ActionListener() {
+            public void actionPerformed(ActionEvent ev) {
+
+                dialogConfirmacao.dispose();
+            }
+        });
+        timer.setRepeats(false);//the timer should only go off once
+
+        timer.start();
+    }
+
+    public List<Funcionario> listarBiometriasCadastradas() {
+        try {
+            FuncionarioDAO dao = new FuncionarioDAO();
+            List<Funcionario> listaCadastrados = dao.listarTodosFuncionariosComBiometria();
+
+            //Criando o objeto que vai guardar os registros e a estrutura da tabela
+            DefaultTableModel modelo = (DefaultTableModel) tabelaCadastrados.getModel();
+
+            modelo.setNumRows(0);
+
+            //Percorrer os registros que estão na listaOS
+            for (Funcionario funcionario : listaCadastrados) {
+                modelo.addRow(new Object[]{
+                    funcionario.getFuncPkId(),
+                    funcionario,
+                    funcionario.getFuncDigital1(),
+                    funcionario.getFuncDigital2()
+                });
+            }
+        } catch (Exception e) {
+        }
+        return null;
+    }
+
+    public void limparDigitais() {
+        digital1 = null;
+        digital2 = null;
+    }
+
+    public void verificarDigital() {
+        new Thread(lerDigital1).stop();
+        CisBiox biox = new CisBiox();
+
+        int iRetorno = biox.iniciar();
+
+        if (iRetorno != 1) {
+            JOptionPane.showMessageDialog(null, "Erro: " + CisBiox.mensagem(iRetorno));
+            return;
+        }
+        btnCancelarLeitura.setEnabled(true);
+        new Thread(lerDigital1).start();
+    }
+
+    public void cancelarLeitor() {
+        // Instanciar a DLL
+        CisBiox biox = new CisBiox();
+
+        // Cancelar a leitura 
+        biox.cancelarLeitura();
+
+        btnCancelarLeitura.setEnabled(false);
+    }
+
     /**
      * Creates new form TesteDigital
      */
@@ -110,67 +247,121 @@ public class TesteDigital extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        btnDigital1 = new javax.swing.JButton();
-        btnDigital2 = new javax.swing.JButton();
-        btnComparar = new javax.swing.JButton();
+        dialogConfirmacao = new javax.swing.JDialog();
+        txtConfirmacao = new javax.swing.JTextField();
+        txtHora = new javax.swing.JTextField();
+        jLabel4 = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
-        cbFuncionario = new javax.swing.JComboBox<>();
-        txtDigital1 = new javax.swing.JTextField();
-        txtDigital2 = new javax.swing.JTextField();
-        btnCadastrar = new javax.swing.JButton();
-        btnLimparDigitais = new javax.swing.JButton();
-        btnMostrarDigitais = new javax.swing.JButton();
-        btnVerificar = new javax.swing.JButton();
+        jPanel1 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
+        cbFuncionario = new javax.swing.JComboBox<>();
+        btnDigital2 = new javax.swing.JButton();
+        btnDigital1 = new javax.swing.JButton();
+        btnCancelarLeitura = new javax.swing.JButton();
+        btnCadastrar = new javax.swing.JButton();
+        jPanel2 = new javax.swing.JPanel();
         jLabel3 = new javax.swing.JLabel();
-        cbCadastrados = new javax.swing.JComboBox<>();
+        btnVerificar = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tabelaCadastrados = new javax.swing.JTable();
+
+        dialogConfirmacao.setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        dialogConfirmacao.setTitle("Confirmação");
+
+        txtConfirmacao.setEditable(false);
+        txtConfirmacao.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
+        txtConfirmacao.setHorizontalAlignment(javax.swing.JTextField.LEFT);
+
+        txtHora.setEditable(false);
+        txtHora.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
+
+        jLabel4.setFont(new java.awt.Font("Tahoma", 1, 16)); // NOI18N
+        jLabel4.setText("Hora da Batida");
+
+        jLabel5.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
+        jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel5.setText("BATIDA REGISTRADA");
+
+        javax.swing.GroupLayout dialogConfirmacaoLayout = new javax.swing.GroupLayout(dialogConfirmacao.getContentPane());
+        dialogConfirmacao.getContentPane().setLayout(dialogConfirmacaoLayout);
+        dialogConfirmacaoLayout.setHorizontalGroup(
+            dialogConfirmacaoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(dialogConfirmacaoLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(dialogConfirmacaoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, 370, Short.MAX_VALUE)
+                    .addComponent(txtConfirmacao)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, dialogConfirmacaoLayout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(jLabel4)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtHora, javax.swing.GroupLayout.PREFERRED_SIZE, 114, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
+        );
+        dialogConfirmacaoLayout.setVerticalGroup(
+            dialogConfirmacaoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(dialogConfirmacaoLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel5)
+                .addGap(18, 18, 18)
+                .addGroup(dialogConfirmacaoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtHora, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel4))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtConfirmacao, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Biometria");
         setResizable(false);
-
-        btnDigital1.setText("Digital1");
-        btnDigital1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnDigital1ActionPerformed(evt);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowActivated(java.awt.event.WindowEvent evt) {
+                formWindowActivated(evt);
             }
         });
 
-        btnDigital2.setText("Digital2");
+        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 16)); // NOI18N
+        jLabel1.setText("Sistema Biometrico");
+
+        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Área de Cadastro"));
+        jPanel1.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
+
+        jLabel2.setFont(new java.awt.Font("Tahoma", 1, 16)); // NOI18N
+        jLabel2.setText("Lista de Funcionários");
+
+        cbFuncionario.addAncestorListener(new javax.swing.event.AncestorListener() {
+            public void ancestorMoved(javax.swing.event.AncestorEvent evt) {
+            }
+            public void ancestorAdded(javax.swing.event.AncestorEvent evt) {
+                cbFuncionarioAncestorAdded(evt);
+            }
+            public void ancestorRemoved(javax.swing.event.AncestorEvent evt) {
+            }
+        });
+
+        btnDigital2.setText("Cadastrar Digital 2");
         btnDigital2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnDigital2ActionPerformed(evt);
             }
         });
 
-        btnComparar.setText("Comparar");
-        btnComparar.addActionListener(new java.awt.event.ActionListener() {
+        btnDigital1.setText("Cadastrar Digital 1");
+        btnDigital1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnCompararActionPerformed(evt);
+                btnDigital1ActionPerformed(evt);
             }
         });
 
-        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 16)); // NOI18N
-        jLabel1.setText("Insira Sua Digital");
-
-        cbFuncionario.addAncestorListener(new javax.swing.event.AncestorListener() {
-            public void ancestorAdded(javax.swing.event.AncestorEvent evt) {
-                cbFuncionarioAncestorAdded(evt);
-            }
-            public void ancestorRemoved(javax.swing.event.AncestorEvent evt) {
-            }
-            public void ancestorMoved(javax.swing.event.AncestorEvent evt) {
-            }
-        });
-
-        txtDigital1.setEditable(false);
-        txtDigital1.addActionListener(new java.awt.event.ActionListener() {
+        btnCancelarLeitura.setText("Cancelar Leitor");
+        btnCancelarLeitura.setEnabled(false);
+        btnCancelarLeitura.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtDigital1ActionPerformed(evt);
+                btnCancelarLeituraActionPerformed(evt);
             }
         });
-
-        txtDigital2.setEditable(false);
 
         btnCadastrar.setText("Cadastrar");
         btnCadastrar.addActionListener(new java.awt.event.ActionListener() {
@@ -179,47 +370,92 @@ public class TesteDigital extends javax.swing.JFrame {
             }
         });
 
-        btnLimparDigitais.setText("Limpar Digitais");
-        btnLimparDigitais.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnLimparDigitaisActionPerformed(evt);
-            }
-        });
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btnDigital2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnDigital1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnCancelarLeitura, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(btnCadastrar))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 206, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(cbFuncionario, javax.swing.GroupLayout.PREFERRED_SIZE, 528, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(cbFuncionario, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnDigital1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnDigital2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnCancelarLeitura)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnCadastrar)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
 
-        btnMostrarDigitais.setText("Mostrar Digitais");
-        btnMostrarDigitais.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnMostrarDigitaisActionPerformed(evt);
-            }
-        });
+        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Área de Verificação"));
 
-        btnVerificar.setText("Verificar");
+        jLabel3.setText("Clique no botão verificar e insira sua digital");
+
+        btnVerificar.setText("Verificar Biometria");
         btnVerificar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnVerificarActionPerformed(evt);
             }
         });
 
-        jLabel2.setFont(new java.awt.Font("Tahoma", 1, 16)); // NOI18N
-        jLabel2.setText("GERAL");
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel3)
+                .addGap(18, 18, 18)
+                .addComponent(btnVerificar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3)
+                    .addComponent(btnVerificar))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
 
-        jLabel3.setFont(new java.awt.Font("Tahoma", 1, 16)); // NOI18N
-        jLabel3.setText("CADASTRADOS");
-
-        cbCadastrados.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                cbCadastradosItemStateChanged(evt);
+        tabelaCadastrados.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Id", "Funcionário", "Digital 1", "Digital 2"
+            }
+        ));
+        tabelaCadastrados.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tabelaCadastradosMouseClicked(evt);
             }
         });
-        cbCadastrados.addAncestorListener(new javax.swing.event.AncestorListener() {
-            public void ancestorAdded(javax.swing.event.AncestorEvent evt) {
-                cbCadastradosAncestorAdded(evt);
-            }
-            public void ancestorRemoved(javax.swing.event.AncestorEvent evt) {
-            }
-            public void ancestorMoved(javax.swing.event.AncestorEvent evt) {
-            }
-        });
+        jScrollPane1.setViewportView(tabelaCadastrados);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -228,68 +464,28 @@ public class TesteDigital extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(btnDigital1)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(txtDigital1))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(btnDigital2)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(txtDigital2)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(btnComparar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnVerificar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(btnLimparDigitais, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 103, Short.MAX_VALUE)
-                        .addComponent(btnMostrarDigitais, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(178, 178, 178))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(btnCadastrar))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel3)
-                            .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 106, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(cbFuncionario, 0, 229, Short.MAX_VALUE)
-                            .addComponent(cbCadastrados, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                .addContainerGap())
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addContainerGap())))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel1)
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnComparar)
-                    .addComponent(btnDigital1)
-                    .addComponent(txtDigital1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnDigital2)
-                    .addComponent(txtDigital2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnVerificar))
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 222, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnLimparDigitais)
-                    .addComponent(btnMostrarDigitais))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cbFuncionario, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel3)
-                    .addComponent(cbCadastrados, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnCadastrar)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 16, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 269, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
 
         pack();
@@ -305,6 +501,7 @@ public class TesteDigital extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Erro: " + CisBiox.mensagem(iRetorno));
             return;
         }
+        btnCancelarLeitura.setEnabled(true);
         new Thread(lerDigital1).start();
 
 
@@ -319,50 +516,10 @@ public class TesteDigital extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Erro: " + CisBiox.mensagem(iRetorno));
             return;
         }
+        btnCancelarLeitura.setEnabled(true);
         new Thread(lerDigital2).start();
 
     }//GEN-LAST:event_btnDigital2ActionPerformed
-
-    private void btnCompararActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCompararActionPerformed
-
-        // Instanciar a DLL
-        CisBiox biox = new CisBiox();
-
-        biox.iniciar();
-
-        int iRetorno = biox.compararDigital(digital1, digital2);
-
-        switch (iRetorno) {
-            case 1:
-                JOptionPane.showMessageDialog(null, "As digitais são iguais");
-                break;
-            case -2:
-                JOptionPane.showMessageDialog(null, "As digitais são diferentes");
-                break;
-            default:
-                JOptionPane.showMessageDialog(null, "Erro: " + Integer.toString(iRetorno));
-                break;
-        }
-        biox.finalizar();
-    }//GEN-LAST:event_btnCompararActionPerformed
-
-    private void txtDigital1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtDigital1ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtDigital1ActionPerformed
-
-    private void btnLimparDigitaisActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLimparDigitaisActionPerformed
-        txtDigital1.setText("");
-        txtDigital2.setText("");
-    }//GEN-LAST:event_btnLimparDigitaisActionPerformed
-
-    private void btnMostrarDigitaisActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMostrarDigitaisActionPerformed
-        if (digital1 != null) {
-            txtDigital1.setText(digital1.toString());
-        }
-        if (digital2 != null) {
-            txtDigital2.setText(digital2.toString());
-        }
-    }//GEN-LAST:event_btnMostrarDigitaisActionPerformed
 
     private void btnCadastrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCadastrarActionPerformed
         try {
@@ -375,44 +532,51 @@ public class TesteDigital extends javax.swing.JFrame {
             dao.alterar(funcionario);
 
             JOptionPane.showMessageDialog(null, "Biometrias cadastradas com sucesso");
-            atualizarCbCadastrados();
-            limparCampos();
+            limparDigitais();
+            cancelarLeitor();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao cadastrar as biometrias: " + e);
         }
     }//GEN-LAST:event_btnCadastrarActionPerformed
 
     private void btnVerificarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVerificarActionPerformed
+
         try {
+            verificarBiometria();
+            /*try {
             FuncionarioDAO dao = new FuncionarioDAO();
             CisBiox biox = new CisBiox();
+            List<Funcionario> funcionarios = dao.listarTodosFuncionariosComBiometria();
             biox.iniciar();
-            List<Funcionario> funcionarios = new ArrayList<Funcionario>();
-            funcionarios = dao.listarTodosFuncionariosComBiometria();
-
             System.out.println(funcionarios);
             System.out.println(digital1);
             // loop em busca da digital pega anteriormente nos alunos da base
             Funcionario funcionarioEncontrado = null;
             for (Funcionario funcionario : funcionarios) {
-                if (biox.compararDigital(funcionario.getFuncDigital1(), digital1) == 1) {
-                    funcionarioEncontrado = funcionario;
-                    break;
-                }
-                if (biox.compararDigital(funcionario.getFuncDigital2(), digital1) == 1) {
-                    funcionarioEncontrado = funcionario;
-                    break;
-                }
+            if (biox.compararDigital(funcionario.getFuncDigital1(), digital1) == 1) {
+            funcionarioEncontrado = funcionario;
+            break;
             }
+            if (biox.compararDigital(funcionario.getFuncDigital2(), digital1) == 1) {
+            funcionarioEncontrado = funcionario;
+            break;
+            }
+            }
+            System.out.println(funcionarioEncontrado);
             biox.finalizar();
             if (funcionarioEncontrado != null) {
-                JOptionPane.showMessageDialog(null, "Bem vindo " + funcionarioEncontrado.getFuncNome());
+            //JOptionPane.showMessageDialog(null, "Bem vindo " + funcionarioEncontrado.getFuncNome());
+            telaConfirmacao(funcionarioEncontrado.getFuncNome());
             } else {
-                JOptionPane.showMessageDialog(null, "Digital não encontrada");
+            JOptionPane.showMessageDialog(null, "Digital não encontrada");
+            verificarDigital();
             }
-
-        } catch (Exception e) {
+            
+            } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao verificar digital: " + e);
+            }*/
+        } catch (InterruptedException ex) {
+            Logger.getLogger(TesteDigital.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_btnVerificarActionPerformed
 
@@ -422,7 +586,6 @@ public class TesteDigital extends javax.swing.JFrame {
             FuncionarioDAO dao = new FuncionarioDAO();
             List<Funcionario> listaClientes = dao.listarTodosFuncionarios();
 
-            cbFuncionario.addItem(" ");
             for (Funcionario funcionario : listaClientes) {
                 cbFuncionario.addItem(funcionario);
             }
@@ -431,27 +594,27 @@ public class TesteDigital extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_cbFuncionarioAncestorAdded
 
-    private void cbCadastradosAncestorAdded(javax.swing.event.AncestorEvent evt) {//GEN-FIRST:event_cbCadastradosAncestorAdded
-        try {
-            FuncionarioDAO dao = new FuncionarioDAO();
-            List<Funcionario> listaClientes = dao.listarTodosFuncionariosComBiometria();
+    private void btnCancelarLeituraActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelarLeituraActionPerformed
+        cancelarLeitor();
+    }//GEN-LAST:event_btnCancelarLeituraActionPerformed
 
-            for (Funcionario funcionario : listaClientes) {
-                cbCadastrados.addItem(funcionario);
-            }
+    private void formWindowActivated(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowActivated
+        listarBiometriasCadastradas();
+    }//GEN-LAST:event_formWindowActivated
+
+    private void tabelaCadastradosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tabelaCadastradosMouseClicked
+        try {
+            cbFuncionario.getModel().setSelectedItem(tabelaCadastrados.getValueAt(tabelaCadastrados.getSelectedRow(), 1));
+            Funcionario funcionario = (Funcionario) cbFuncionario.getSelectedItem();
+            digital1 = funcionario.getFuncDigital1();
+            digital2 = funcionario.getFuncDigital2();
+            System.out.println(funcionario);
+            System.out.println(digital1);
+            System.out.println(digital2);
         } catch (Exception e) {
 
         }
-    }//GEN-LAST:event_cbCadastradosAncestorAdded
-
-    private void cbCadastradosItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_cbCadastradosItemStateChanged
-        Funcionario funcionario = (Funcionario) cbCadastrados.getSelectedItem();
-        digital1 = funcionario.getFuncDigital1();
-        digital2 = funcionario.getFuncDigital2();
-        txtDigital1.setText(funcionario.getFuncDigital1().toString());
-        txtDigital2.setText(funcionario.getFuncDigital2().toString());
-        System.out.println(funcionario);
-    }//GEN-LAST:event_cbCadastradosItemStateChanged
+    }//GEN-LAST:event_tabelaCadastradosMouseClicked
 
     /**
      * @param args the command line arguments
@@ -490,19 +653,23 @@ public class TesteDigital extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCadastrar;
-    private javax.swing.JButton btnComparar;
+    private javax.swing.JButton btnCancelarLeitura;
     private javax.swing.JButton btnDigital1;
     private javax.swing.JButton btnDigital2;
-    private javax.swing.JButton btnLimparDigitais;
-    private javax.swing.JButton btnMostrarDigitais;
     private javax.swing.JButton btnVerificar;
-    private javax.swing.JComboBox<Object> cbCadastrados;
     private javax.swing.JComboBox<Object> cbFuncionario;
+    private javax.swing.JDialog dialogConfirmacao;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JTextField txtDigital1;
-    private javax.swing.JTextField txtDigital2;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable tabelaCadastrados;
+    private javax.swing.JTextField txtConfirmacao;
+    private javax.swing.JTextField txtHora;
     // End of variables declaration//GEN-END:variables
 
 }

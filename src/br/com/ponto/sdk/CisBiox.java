@@ -51,7 +51,7 @@ public class CisBiox {
         return pDigital;
     }
 
-    private int cancelarLeitura() {
+    public int cancelarLeitura() {
         int iRetorno = sdk.CIS_SDK_Biometrico_CancelarLeitura();
         return iRetorno;
     }
