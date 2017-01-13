@@ -138,25 +138,35 @@ public class TesteDigital extends javax.swing.JFrame {
                 if (funcionarioEncontrado != null) {
                     //JOptionPane.showMessageDialog(null, "Bem vindo " + funcionarioEncontrado.getFuncNome());
                     nomeFuncionario = funcionarioEncontrado.getFuncNome();
-                } else {
-                    JOptionPane.showMessageDialog(null, "Digital não encontrada");
+                 
                 }
             } catch (Exception e) {
-
+                
             }
         }
     };
 
-    public void verificarBiometria() throws InterruptedException {
+    public void verificarBiometria() {
         nomeFuncionario = null;
-        Thread etapaCaptura = new Thread(pegaBatida);
-        Thread etapaCompara = new Thread(comparaBatida);
+        try {
 
-        etapaCaptura.start();
-        etapaCaptura.join();
-        etapaCompara.start();
-        etapaCompara.join();
-        telaConfirmacao(nomeFuncionario);
+            Thread etapaCaptura = new Thread(pegaBatida);
+            Thread etapaCompara = new Thread(comparaBatida);
+
+            etapaCaptura.start();
+            etapaCaptura.join();
+            etapaCompara.start();
+            etapaCompara.join();
+            
+            if(nomeFuncionario != null){
+                telaConfirmacao(nomeFuncionario);
+            } else{
+                JOptionPane.showMessageDialog(null, "Digital não encontrada");
+            }
+        } catch (InterruptedException e) {
+            System.out.println("Erro:" + e);
+        }
+        
     }
 
     public void telaConfirmacao(String funcionario) {
@@ -300,6 +310,7 @@ public class TesteDigital extends javax.swing.JFrame {
 
         jLabel5.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
         jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/br/com/ponto/imagens/btnConfirmar.png"))); // NOI18N
         jLabel5.setText("BATIDA REGISTRADA");
 
         javax.swing.GroupLayout dialogConfirmacaoLayout = new javax.swing.GroupLayout(dialogConfirmacao.getContentPane());
@@ -341,7 +352,8 @@ public class TesteDigital extends javax.swing.JFrame {
             }
         });
 
-        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 18)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 36)); // NOI18N
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/br/com/ponto/imagens/tituloBiometria.png"))); // NOI18N
         jLabel1.setText("Sistema Biometrico");
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Área de Cadastro"));
@@ -387,6 +399,7 @@ public class TesteDigital extends javax.swing.JFrame {
         });
 
         btnCadastrar.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        btnCadastrar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/br/com/ponto/imagens/botaoSalvar.png"))); // NOI18N
         btnCadastrar.setText("Cadastrar");
         btnCadastrar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -437,6 +450,7 @@ public class TesteDigital extends javax.swing.JFrame {
         jLabel3.setText("Clique no botão verificar e insira sua digital");
 
         btnVerificar.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        btnVerificar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/br/com/ponto/imagens/btnVerificar.png"))); // NOI18N
         btnVerificar.setText("Verificar Biometria");
         btnVerificar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -489,8 +503,14 @@ public class TesteDigital extends javax.swing.JFrame {
         jLabel6.setText("Filtrar por nome:");
 
         txtFiltro.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        txtFiltro.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txtFiltroKeyPressed(evt);
+            }
+        });
 
         btnFiltro.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
+        btnFiltro.setIcon(new javax.swing.ImageIcon(getClass().getResource("/br/com/ponto/imagens/btnProcurar.png"))); // NOI18N
         btnFiltro.setText("Filtrar");
         btnFiltro.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -508,7 +528,7 @@ public class TesteDigital extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(txtFiltro, javax.swing.GroupLayout.PREFERRED_SIZE, 467, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnFiltro, javax.swing.GroupLayout.DEFAULT_SIZE, 119, Short.MAX_VALUE)
+                .addComponent(btnFiltro, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
@@ -548,7 +568,7 @@ public class TesteDigital extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 247, Short.MAX_VALUE)
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -613,43 +633,39 @@ public class TesteDigital extends javax.swing.JFrame {
 
     private void btnVerificarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVerificarActionPerformed
 
-        try {
-            verificarBiometria();
-            /*try {
-            FuncionarioDAO dao = new FuncionarioDAO();
-            CisBiox biox = new CisBiox();
-            List<Funcionario> funcionarios = dao.listarTodosFuncionariosComBiometria();
-            biox.iniciar();
-            System.out.println(funcionarios);
-            System.out.println(digital1);
-            // loop em busca da digital pega anteriormente nos alunos da base
-            Funcionario funcionarioEncontrado = null;
-            for (Funcionario funcionario : funcionarios) {
-            if (biox.compararDigital(funcionario.getFuncDigital1(), digital1) == 1) {
-            funcionarioEncontrado = funcionario;
-            break;
-            }
-            if (biox.compararDigital(funcionario.getFuncDigital2(), digital1) == 1) {
-            funcionarioEncontrado = funcionario;
-            break;
-            }
-            }
-            System.out.println(funcionarioEncontrado);
-            biox.finalizar();
-            if (funcionarioEncontrado != null) {
-            //JOptionPane.showMessageDialog(null, "Bem vindo " + funcionarioEncontrado.getFuncNome());
-            telaConfirmacao(funcionarioEncontrado.getFuncNome());
-            } else {
-            JOptionPane.showMessageDialog(null, "Digital não encontrada");
-            verificarDigital();
-            }
-            
-            } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Erro ao verificar digital: " + e);
-            }*/
-        } catch (InterruptedException ex) {
-            Logger.getLogger(TesteDigital.class.getName()).log(Level.SEVERE, null, ex);
+        verificarBiometria();
+        /*try {
+        FuncionarioDAO dao = new FuncionarioDAO();
+        CisBiox biox = new CisBiox();
+        List<Funcionario> funcionarios = dao.listarTodosFuncionariosComBiometria();
+        biox.iniciar();
+        System.out.println(funcionarios);
+        System.out.println(digital1);
+        // loop em busca da digital pega anteriormente nos alunos da base
+        Funcionario funcionarioEncontrado = null;
+        for (Funcionario funcionario : funcionarios) {
+        if (biox.compararDigital(funcionario.getFuncDigital1(), digital1) == 1) {
+        funcionarioEncontrado = funcionario;
+        break;
         }
+        if (biox.compararDigital(funcionario.getFuncDigital2(), digital1) == 1) {
+        funcionarioEncontrado = funcionario;
+        break;
+        }
+        }
+        System.out.println(funcionarioEncontrado);
+        biox.finalizar();
+        if (funcionarioEncontrado != null) {
+        //JOptionPane.showMessageDialog(null, "Bem vindo " + funcionarioEncontrado.getFuncNome());
+        telaConfirmacao(funcionarioEncontrado.getFuncNome());
+        } else {
+        JOptionPane.showMessageDialog(null, "Digital não encontrada");
+        verificarDigital();
+        }
+        
+        } catch (Exception e) {
+        JOptionPane.showMessageDialog(null, "Erro ao verificar digital: " + e);
+        }*/
     }//GEN-LAST:event_btnVerificarActionPerformed
 
     private void cbFuncionarioAncestorAdded(javax.swing.event.AncestorEvent evt) {//GEN-FIRST:event_cbFuncionarioAncestorAdded
@@ -682,7 +698,7 @@ public class TesteDigital extends javax.swing.JFrame {
         List<Funcionario> listaFuncionarios = new ArrayList<Funcionario>();
         try {
             FuncionarioDAO dao = new FuncionarioDAO();
-            String nome = "%"+txtFiltro.getText().toUpperCase()+"%";
+            String nome = "%" + txtFiltro.getText().toUpperCase() + "%";
             listaFuncionarios = dao.consultarPorFuncionario(nome);
             DefaultTableModel modelo = (DefaultTableModel) tabelaCadastrados.getModel();
             modelo.setNumRows(0);
@@ -699,6 +715,12 @@ public class TesteDigital extends javax.swing.JFrame {
             listarBiometriasCadastradas();
         }
     }//GEN-LAST:event_btnFiltroActionPerformed
+
+    private void txtFiltroKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtFiltroKeyPressed
+        if (evt.getKeyCode() == evt.VK_ENTER) {
+            btnFiltro.doClick();
+        }
+    }//GEN-LAST:event_txtFiltroKeyPressed
 
     /**
      * @param args the command line arguments
