@@ -1,139 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <Form version="1.3" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JFrameFormInfo">
-  <NonVisualComponents>
-    <Container class="javax.swing.JDialog" name="dialogConfirmacao">
-      <Properties>
-        <Property name="defaultCloseOperation" type="int" value="2"/>
-        <Property name="title" type="java.lang.String" value="Confirma&#xe7;&#xe3;o"/>
-      </Properties>
-      <Events>
-        <EventHandler event="windowClosed" listener="java.awt.event.WindowListener" parameters="java.awt.event.WindowEvent" handler="dialogConfirmacaoWindowClosed"/>
-      </Events>
-
-      <Layout>
-        <DimensionLayout dim="0">
-          <Group type="103" groupAlignment="0" attributes="0">
-              <Group type="102" alignment="0" attributes="0">
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
-                      <Component id="jLabel7" alignment="0" pref="370" max="32767" attributes="0"/>
-                      <Component id="txtConfirmacao" alignment="0" max="32767" attributes="0"/>
-                      <Group type="102" alignment="1" attributes="0">
-                          <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
-                          <Component id="jLabel6" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Component id="txtHora" min="-2" pref="114" max="-2" attributes="0"/>
-                      </Group>
-                  </Group>
-                  <EmptySpace max="-2" attributes="0"/>
-              </Group>
-          </Group>
-        </DimensionLayout>
-        <DimensionLayout dim="1">
-          <Group type="103" groupAlignment="0" attributes="0">
-              <Group type="102" alignment="0" attributes="0">
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Component id="jLabel7" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="txtHora" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="jLabel6" alignment="3" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Component id="txtConfirmacao" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace max="32767" attributes="0"/>
-              </Group>
-          </Group>
-        </DimensionLayout>
-      </Layout>
-      <SubComponents>
-        <Component class="javax.swing.JTextField" name="txtConfirmacao">
-          <Properties>
-            <Property name="editable" type="boolean" value="false"/>
-            <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-              <Font name="Tahoma" size="18" style="1"/>
-            </Property>
-            <Property name="horizontalAlignment" type="int" value="2"/>
-          </Properties>
-        </Component>
-        <Component class="javax.swing.JTextField" name="txtHora">
-          <Properties>
-            <Property name="editable" type="boolean" value="false"/>
-            <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-              <Font name="Tahoma" size="18" style="1"/>
-            </Property>
-          </Properties>
-        </Component>
-        <Component class="javax.swing.JLabel" name="jLabel6">
-          <Properties>
-            <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-              <Font name="Tahoma" size="16" style="1"/>
-            </Property>
-            <Property name="text" type="java.lang.String" value="Hora da Batida"/>
-          </Properties>
-        </Component>
-        <Component class="javax.swing.JLabel" name="jLabel7">
-          <Properties>
-            <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-              <Font name="Tahoma" size="24" style="1"/>
-            </Property>
-            <Property name="horizontalAlignment" type="int" value="0"/>
-            <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/br/com/ponto/imagens/btnConfirmar.png"/>
-            </Property>
-            <Property name="text" type="java.lang.String" value="BATIDA REGISTRADA"/>
-          </Properties>
-        </Component>
-      </SubComponents>
-    </Container>
-    <Container class="javax.swing.JDialog" name="dialogNaoConfirmado">
-      <Properties>
-        <Property name="defaultCloseOperation" type="int" value="2"/>
-        <Property name="title" type="java.lang.String" value="Nao Encontrado"/>
-      </Properties>
-      <Events>
-        <EventHandler event="windowClosed" listener="java.awt.event.WindowListener" parameters="java.awt.event.WindowEvent" handler="dialogNaoConfirmadoWindowClosed"/>
-      </Events>
-
-      <Layout>
-        <DimensionLayout dim="0">
-          <Group type="103" groupAlignment="0" attributes="0">
-              <Group type="102" alignment="0" attributes="0">
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Component id="jLabel8" max="32767" attributes="0"/>
-                  <EmptySpace max="-2" attributes="0"/>
-              </Group>
-          </Group>
-        </DimensionLayout>
-        <DimensionLayout dim="1">
-          <Group type="103" groupAlignment="0" attributes="0">
-              <Group type="102" alignment="0" attributes="0">
-                  <EmptySpace min="-2" pref="40" max="-2" attributes="0"/>
-                  <Component id="jLabel8" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace pref="46" max="32767" attributes="0"/>
-              </Group>
-          </Group>
-        </DimensionLayout>
-      </Layout>
-      <SubComponents>
-        <Component class="javax.swing.JLabel" name="jLabel8">
-          <Properties>
-            <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-              <Font name="Tahoma" size="24" style="1"/>
-            </Property>
-            <Property name="horizontalAlignment" type="int" value="0"/>
-            <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/br/com/ponto/imagens/botaExcluir.png"/>
-            </Property>
-            <Property name="text" type="java.lang.String" value="DIGITAL N&#xc3;O ENCONTRADA"/>
-          </Properties>
-        </Component>
-      </SubComponents>
-    </Container>
-  </NonVisualComponents>
   <Properties>
-    <Property name="defaultCloseOperation" type="int" value="2"/>
+    <Property name="defaultCloseOperation" type="int" value="3"/>
     <Property name="title" type="java.lang.String" value="Batida"/>
     <Property name="resizable" type="boolean" value="false"/>
   </Properties>
@@ -187,13 +56,11 @@
               <EmptySpace max="-2" attributes="0"/>
               <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="0" attributes="0">
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="jlData" alignment="3" min="-2" pref="76" max="-2" attributes="0"/>
+                  <Component id="jlHora" alignment="3" pref="103" max="32767" attributes="0"/>
+                  <Component id="jLabel3" alignment="3" min="-2" pref="76" max="-2" attributes="0"/>
                   <Component id="jLabel2" alignment="1" max="32767" attributes="0"/>
-                  <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="jlData" alignment="3" min="-2" pref="76" max="-2" attributes="0"/>
-                      <Component id="jlHora" alignment="3" pref="103" max="32767" attributes="0"/>
-                      <Component id="jLabel3" alignment="3" min="-2" pref="76" max="-2" attributes="0"/>
-                  </Group>
               </Group>
               <EmptySpace type="separate" max="-2" attributes="0"/>
               <Component id="jLabel5" min="-2" max="-2" attributes="0"/>
