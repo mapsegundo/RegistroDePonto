@@ -6,6 +6,7 @@
 package br.com.ponto.entidade;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Date;
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -16,6 +17,7 @@ import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -53,6 +55,8 @@ public class Funcionario implements Serializable {
     @Lob
     @Column(name = "func_digital2")
     private byte[] funcDigital2;
+    @OneToMany(mappedBy = "batFkFuncionarioId")
+    private Collection<Batida> batidaCollection;
 
     public Funcionario() {
     }
@@ -124,6 +128,14 @@ public class Funcionario implements Serializable {
         this.funcDigital2 = funcDigital2;
     }
 
+    public Collection<Batida> getBatidaCollection() {
+        return batidaCollection;
+    }
+
+    public void setBatidaCollection(Collection<Batida> batidaCollection) {
+        this.batidaCollection = batidaCollection;
+    }
+    
     @Override
     public int hashCode() {
         int hash = 0;

@@ -3,6 +3,7 @@
   <persistence-unit name="RegistroDePontoPU" transaction-type="RESOURCE_LOCAL">
     <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
     <class>br.com.ponto.entidade.Funcionario</class>
+    <class>br.com.ponto.entidade.Batida</class>
     <properties>
       <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/nutec"/>
       <property name="javax.persistence.jdbc.user" value="root"/>
